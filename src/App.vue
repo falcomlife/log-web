@@ -17,7 +17,7 @@
     name: 'App',
     data() {
       return {
-        activeIndex: '/warning'
+        activeIndex: '/node'
       }
     }
   }

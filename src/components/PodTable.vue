@@ -1,6 +1,6 @@
 <template>
 
-  <div style="width:100%;padding-top:2%;pading-bottom:2%" >
+  <div style="width:100%;padding-top:2%;pading-bottom:2%;" >
     <el-table :data="tableData" style="width: 96%;margin-left:2%" height="600">
       <el-table-column fixed prop="namespace" label="Namespace"> </el-table-column>
       <el-table-column fixed prop="name" label="Pod"> </el-table-column>

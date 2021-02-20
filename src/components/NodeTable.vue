@@ -1,6 +1,6 @@
 <template>
 
-  <div style="width:100%;padding-top:2%;pading-bottom:2%" >
+  <div style="width:100%;padding-top:2%;pading-bottom:2%;">
     <el-table :data="tableData" :span-method="objectSpanMethod" style="width: 96%;margin-left:2%">
       <el-table-column fixed prop="name" label="节点名"> </el-table-column>
       <el-table-column :formatter="cellFormatter" label="Cpu/Mem"></el-table-column>
