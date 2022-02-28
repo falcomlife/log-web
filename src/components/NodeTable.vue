@@ -32,8 +32,8 @@
     },
     created() {
       axios
-        //.get('https://klog.ciiplat.com/nodes')
-        .get('http://172.16.178.13:8080/nodes')
+        .get('https://klog.ciiplat.com/nodes')
+        //.get('http://172.16.179.13:8080/nodes')
         .then(res => {
           this.tableData = res.data
         })

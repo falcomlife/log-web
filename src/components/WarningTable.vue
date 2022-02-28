@@ -64,8 +64,8 @@
       //刷新数据
       refreshTableData() {
         axios
-          //.get('https://klog.ciiplat.com/warnings')
-          .get('http://172.16.178.13:8080/warnings')
+          .get('https://klog.ciiplat.com/warnings')
+          //.get('http://172.16.179.13:8080/warnings')
           .then(res => {
             this.tableData = res.data
           })

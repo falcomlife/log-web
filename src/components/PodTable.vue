@@ -41,7 +41,7 @@
     created() {
       axios
         //.get('https://klog.ciiplat.com/pods')
-        .get('http://172.16.178.13:8080/pods')
+        .get('http://172.16.179.13:8080/pods')
         .then(res => {
           this.tableData = res.data
         })

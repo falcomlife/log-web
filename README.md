@@ -7,17 +7,17 @@ npm install
 
 ### Compiles and hot-reloads for development
 ```
-npm run serve
+vue-cli-service serve --port=8000
 ```
 
 ### Compiles and minifies for production
 ```
-npm run build
+vue-cli-service build
 ```
 
 ### Lints and fixes files
 ```
-npm run lint
+vue-cli-service lint
 ```
 
 ### Customize configuration
