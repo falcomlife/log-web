@@ -132,7 +132,7 @@ export default {
     },
     getDesc() {
       axios
-        .get(this.global.apiUrl + '/services', {
+        .get(this.global.apiUrl + 'services', {
           params: {
             action: "desc",
             namespace: this.suspect.namespace,
@@ -150,7 +150,7 @@ export default {
     },
     getLog() {
       axios
-        .get(this.global.apiUrl + '/services', {
+        .get(this.global.apiUrl + 'services', {
           params: {
             action: "log",
             namespace: this.suspect.namespace,
