@@ -3,7 +3,7 @@
   <el-container direction="vertical">
     <el-header class="title">Klog</el-header>
     <el-container direction="horizontal">
-      <el-aside>
+      <el-aside width=10%>
         <el-row>
           <el-col>
             <el-menu default-active="/services" router>

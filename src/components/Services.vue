@@ -16,7 +16,7 @@
       <el-drawer :visible.sync="drawerjava" :with-header="false" size='50%'>
         <div style="padding: 4% 10%;">
           <el-tabs>
-            <el-tab-pane label="单模块" style="margin-top:4%;">
+            <el-tab-pane label="单模块" style="margin-top:4%;overflow-y: scroll;" :style="{height: scrollerHeight}">
               <el-form ref="formJava" :rules="rules" :model="formJava" size="small">
                 <el-form-item>
                   <span>
@@ -44,9 +44,13 @@
                 <el-form-item label="端口" prop="port">
                   <el-input v-model="formJava.port" placeholder="请输入微服务端口，对应spring-boot的server.port配置"></el-input>
                 </el-form-item>
-                <el-form-item label="健康检查路径" prop="health">
-                  <el-input v-model="formJava.health" placeholder="请输入包含server.servlet.context-path的路径，例如/${context-path}/actuator/health"></el-input>
+                <el-form-item label="路径前缀" prop="prefix">
+                  <el-input v-model="formJava.prefix" placeholder="请输入server.servlet.context-path的路径，即全局统一的访问路径前缀" @blur="autocompletehealth($event)"></el-input>
                 </el-form-item>
+                <el-form-item label="健康检查路径" prop="health">
+                  <el-input v-model="formJava.health" placeholder="请输入不包含server.servlet.context-path的路径，例如/actuator/health" @blur="autocompletehealth($event)"></el-input>
+                </el-form-item>
+
                 <el-form-item>
                   <span>
                     <font style="font-size:12px;color: red;">获取配置文件后，解压到项目的根目录，一起提交。</font>
@@ -58,7 +62,7 @@
                 </el-form-item>
               </el-form>
             </el-tab-pane>
-            <el-tab-pane label="多模块" style="margin-top:4%;height:750px;overflow-y: scroll;">
+            <el-tab-pane label="多模块" style="margin-top:4%;overflow-y: scroll;" :style="{height: scrollerHeight}">
               <el-form ref="formJavaMul" :rules="rules" :model="formJavaMul" size="small">
                 <el-form-item>
                   <span>
@@ -81,7 +85,7 @@
                 </el-form-item>
                 <el-form-item>
                   <el-button type="primary" @click="submitFormJavaMul('formJavaMul')">获取配置文件</el-button>
-                  <el-button @click="addService()">新增域名</el-button>
+                  <el-button @click="addService()">新增模块</el-button>
                   <el-button @click="resetFormJavaMul('formJavaMul')">重置</el-button>
                 </el-form-item>
                 <div v-for="(module, index) in formJavaMul.modules" :key="module.key">
@@ -124,10 +128,18 @@
                         </td>
                       </tr>
                       <tr>
+                        <td><label for="prefix">路径前缀:</label></td>
+                        <td>
+                          <el-form-item style="margin: 0px 0px;" :rules="mulRules.prefix" :key="module.key" :prop="'modules.' + index + '.prefix'" value="/actuator/health">
+                            <el-input label="路径前缀" prop="prefix" v-model="module.prefix" placeholder="请输入server.servlet.context-path的路径，即全局统一的访问路径前缀" @blur="autocompletehealth($event)" value="/actuator/health"></el-input>
+                          </el-form-item>
+                        </td>
+                      </tr>
+                      <tr>
                         <td><label for="health">健康检查路径:</label></td>
                         <td>
                           <el-form-item style="margin: 0px 0px;" :rules="mulRules.health" :key="module.key" :prop="'modules.' + index + '.health'">
-                            <el-input label="健康检查路径" prop="health" v-model="module.health" placeholder="请输入包含server.servlet.context-path的路径，例如/${context-path}/actuator/health"></el-input>
+                            <el-input label="健康检查路径" prop="health" v-model="module.health" placeholder="请输入不包含server.servlet.context-path的路径，例如/actuator/health" @blur="autocompletehealth($event)"></el-input>
                           </el-form-item>
                         </td>
                       </tr>
@@ -157,8 +169,11 @@
             <el-form-item label="分支名/Tag" prop="onlyRefs">
               <el-input v-model="formNpm.onlyRefs" placeholder="测试环境请输入测试主分支，生产环境请输入'tags'"></el-input>
             </el-form-item>
+            <el-form-item label="前缀路径" prop="prefix">
+              <el-input v-model="formNpm.prefix" placeholder="请输入全局路径前缀，例如/foo/index.html，foo访问前缀，这里输入/foo" @blur="autocompletehealth($event)"></el-input>
+            </el-form-item>
             <el-form-item label="健康检查路径" prop="health">
-              <el-input v-model="formNpm.health" placeholder="请输入一个能访问的静态资源，例如/index.html"></el-input>
+              <el-input v-model="formNpm.health" placeholder="请输入一个能访问的静态资源，例如/index.html" @blur="autocompletehealth($event)"></el-input>
             </el-form-item>
             <el-form-item>
               <span>
@@ -207,13 +222,13 @@
   </el-row>
   <el-row class="row">
     <el-col :span="24">
-      <el-table :data="tableData">
-        <el-table-column fixed prop="namespace" label="Namespace" width=100> </el-table-column>
-        <el-table-column fixed prop="name" label="名称" width=100> </el-table-column>
-        <el-table-column prop="description" label="说明" width=150> </el-table-column>
+      <el-table :data="tableData" :height="autoheight">
+        <el-table-column fixed prop="namespace" label="Namespace" sortable=true width=100> </el-table-column>
+        <el-table-column fixed prop="name" label="名称" width=120> </el-table-column>
+        <el-table-column prop="description" label="说明" width=200> </el-table-column>
         <el-table-column prop="kind" label="负载类型" width=100> </el-table-column>
         <el-table-column prop="podStatus" :formatter="podStatusFormatter" label="状态" width=100> </el-table-column>
-        <el-table-column prop="podNames" :formatter="podNamesFormatter" label="下辖Pod" width=200> </el-table-column>
+        <el-table-column prop="podNames" :formatter="podNamesFormatter" label="下辖Pod" width=250> </el-table-column>
         <el-table-column prop="startTime" :formatter="startTimeFormatter" label="启动时间" width=200> </el-table-column>
         <el-table-column prop="duration" :formatter="durationFormatter" label="存活时间（秒）" width=200> </el-table-column>
         <el-table-column prop="restartTimes" :formatter="restartTimesFormatter" label="重启次数" width=100> </el-table-column>
@@ -222,16 +237,16 @@
         <el-table-column prop="gitUrl" label="仓库地址" width=400> </el-table-column>
         <el-table-column prop="replicas" label="要求副本数" width=100> </el-table-column>
         <el-table-column prop="ready" label="正常运行副本数" width=150> </el-table-column>
-        <el-table-column fixed="right" label="操作" width=160>
+        <el-table-column fixed="right" label="操作" width=130>
           <template slot-scope="scope">
             <el-tooltip class="item" effect="light" content="重启" placement="bottom">
-              <el-button type="primary" icon="el-icon-refresh" circle @click="restartClick(scope.row)"></el-button>
+              <el-button type="primary" icon="el-icon-refresh" size="mini" circle @click="restartClick(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip class="item" effect="light" content="回滚" placement="bottom">
-              <el-button type="primary" icon="el-icon-d-arrow-left" circle @click="rollbackClick(scope.row)"></el-button>
+              <el-button type="primary" icon="el-icon-d-arrow-left" size="mini" circle @click="rollbackClick(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip class="item" effect="light" content="详情" placement="bottom">
-              <el-button type="primary" icon="el-icon-info" circle @click="infoClick(scope.row)"></el-button>
+              <el-button type="primary" icon="el-icon-info" size="mini" circle @click="infoClick(scope.row)"></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -324,7 +339,8 @@ export default {
         onlyRefs: "",
         artifactsPaths: "",
         port: "",
-        health: ""
+        prefix: "",
+        health: "/actuator/health"
       },
       formJavaMul: {
         namespace: "",
@@ -335,7 +351,8 @@ export default {
           describe: "",
           artifactsPaths: "",
           port: "",
-          health: ""
+          prefix: "",
+          health: "/actuator/health"
         }]
       },
       formNpm: {
@@ -344,7 +361,8 @@ export default {
         describe: "",
         gitUrl: "",
         onlyRefs: "",
-        health: ""
+        prefix: "",
+        health: "/index.html"
       },
       drawerjava: false,
       drawernpm: false,
@@ -404,17 +422,23 @@ export default {
           validator: health,
           trigger: 'blur'
         }]
-      }
+      },
+      autoheight: 0,
     }
   },
   created() {
     this.getServiceList()
-    console.log(this.global.apiUrl)
+    this.autoheight = window.innerHeight - 150
     // this.timer = window.setInterval(() => {
     //   setTimeout(() => {
     //     this.getServiceList()
     //   }, 0)
     // }, 5000)
+  },
+  computed: {
+    scrollerHeight: function() {
+      return (window.innerHeight - 150) + 'px'; //自定义高度需求
+    }
   },
   methods: {
     getServiceList() {
@@ -555,6 +579,12 @@ export default {
     submitFormJava(form) {
       this.$refs[form].validate((valid) => {
         if (valid) {
+          if(this.formJava.prefix != "" && this.formJava.prefix.substr(0, 1) != "/" ){
+            this.formJava.prefix = "/"+this.formJava.prefix
+          }
+          if(this.formJava.health != "" && this.formJava.health.substr(0, 1) != "/" ){
+            this.formJava.health = "/"+this.formJava.health
+          }
           axios
             .put(this.global.apiUrl + 'services?action=java',
               JSON.stringify(this.formJava))
@@ -587,9 +617,16 @@ export default {
       this.$refs[formName].resetFields();
     },
     submitFormJavaMul(form) {
-      console.log(this.formJavaMul)
       this.$refs[form].validate((valid) => {
         if (valid) {
+          this.formJavaMul.modules.forEach(function(element){
+            if(element.prefix != "" && element.prefix.substr(0, 1) != "/" ){
+              element.prefix = "/"+element.prefix
+            }
+            if(element.health != "" && element.health.substr(0, 1) != "/" ){
+              element.health = "/"+element.health
+            }
+          })
           axios
             .put(this.global.apiUrl + 'services?action=javaMul', JSON.stringify(this.formJavaMul))
             .then(res => {
@@ -629,12 +666,19 @@ export default {
     addService() {
       this.formJavaMul.modules.push({
         value: '',
-        key: Date.now()
+        key: Date.now(),
+        health: "/actuator/health"
       });
     },
     submitFormNpm(form) {
       this.$refs[form].validate((valid) => {
         if (valid) {
+          if(this.formNpm.prefix != "" && this.formNpm.prefix.substr(0, 1) != "/" ){
+            this.formNpm.prefix = "/"+this.formNpm.prefix
+          }
+          if(this.formNpm.health != "" && this.formNpm.health.substr(0, 1) != "/" ){
+            this.formNpm.health = "/"+this.formNpm.health
+          }
           axios
             .put(this.global.apiUrl + 'services?action=npm', JSON.stringify(this.formNpm))
             .then(res => {
@@ -664,6 +708,15 @@ export default {
     },
     resetFormNpm(formName) {
       this.$refs[formName].resetFields();
+    },
+    autocompletehealth(event) {
+      let value = event.target.value
+      if (value == "") {
+        return
+      } else if (value.substr(0, 1) != "/") {
+        event.target.value = "/" + value
+      }
+      console.log(this.formJava)
     }
   }
 }
